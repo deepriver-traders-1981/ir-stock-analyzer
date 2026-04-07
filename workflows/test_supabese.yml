@@ -1,1 +1,40 @@
+name: Test Supabase Connection
 
+on:
+  workflow_dispatch:
+
+jobs:
+  test-connection:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install supabase
+
+      - name: Test Supabase connection
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          python - << 'EOF'
+          from supabase import create_client
+          import os
+
+          url = os.environ["SUPABASE_URL"]
+          key = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
+
+          supabase = create_client(url, key)
+
+          # 単純に companies テーブルを1件取得してみる
+          data = supabase.table("tm_companies").select("*").limit(1).execute()
+          print("Connection OK. Sample data:", data)
+          EOF
